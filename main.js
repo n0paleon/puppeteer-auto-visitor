@@ -173,7 +173,7 @@ async function start (num) {
         viewport: {
           height: browserData.viewportHeight,
           width: browserData.viewportWidth
-        }
+        },
         chromeArgs: chromeArgs,
         referer: referer,
         sleep: getRandomInt(argv.min, argv.max)
