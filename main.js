@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer')
-      randomUA = require('random-useragent')
+      randomUA = require('user-agents')
       fs = require('fs-extra')
       moment = require('moment-timezone')
       dedent = require('dedent-js')
@@ -62,6 +62,7 @@ async function doVisit (options) {
     }
     
     await page.setRequestInterception(true)
+    /**
     page.on('request', (request) => {
       if (["stylesheet", "image", "video", "font"].includes(request.resourceType())) {
         request.abort()
@@ -69,7 +70,12 @@ async function doVisit (options) {
         request.continue()
       }
     })
+    */
     
+    await page.setViewport({
+      width: options.viewport.width,
+      height: options.viewport.height
+    })
     await page.setUserAgent(options.user_agent)
     await page.setExtraHTTPHeaders({
       referer: options.referer
@@ -134,7 +140,8 @@ async function start (num) {
           '--no-sandbox',
           '--no-first-run',
           '--no-zygote'
-          ]
+          ],
+        ignoreHTTPSErrors: true
       }
       if (proxies.length > 0) {
         var proxy = proxies[Math.floor(Math.random() * proxies.length)].split(':')
@@ -156,12 +163,17 @@ async function start (num) {
         }
       }
       var url = urls[Math.floor(Math.random() * urls.length)]
+      var browserData = getRandomUserAgent()
       var options = {
         url: url,
         useProxy: proxies.length > 0 ? true : false,
         proxy: proxyArgs,
         hits: i,
-        user_agent: getRandomUserAgent(),
+        user_agent: browserData.userAgent,
+        viewport: {
+          height: browserData.viewportHeight,
+          width: browserData.viewportWidth
+        }
         chromeArgs: chromeArgs,
         referer: referer,
         sleep: getRandomInt(argv.min, argv.max)
@@ -180,34 +192,21 @@ function color(text, color) {
   return !color ? chalk.green(text) : chalk.keyword(color)(text)
 }
 
-function getRandomUserAgent(type = 'random') {
-  var browserList = [
-    'Mozilla',
-    'Firefox',
-    'Chrome',
-    'Opera',
-    'Brave',
-    'Safari',
-    'Samsung',
-    'Android'
-    ]
-  return randomUA.getRandom (function (ua) {
-    switch (type.toLowerCase()) {
-      case 'random':
-        return ua.browserName == browserList[Math.floor(Math.random() * browserList.length)]
-        break
-      case 'mobile':
-        var mobileOsList = ['android', 'ios', 'windows phone']
-        return ua.osName.toLowerCase() == mobileOsList[Math.floor(Math.random() * mobileOsList.length)]
-        break
-      case 'dekstop':
-        var dekstopOsList = ['windows', 'linux', 'macos', 'ubuntu', 'debian', 'centos']
-        return ua.osName.toLowerCase() == dekstopOsList[Math.floor(Math.random() * dekstopOsList.length)]
-        break
-      default:
-        return ua.browserName == browserList[Math.floor(Math.random() * browserList.length)]
-    }
-  })
+async function getRandomUserAgent(type = 'random') {
+  switch (type.toLowerCase()) {
+    case 'mobile':
+      return new randomUA({ deviceCategory: 'mobile' }).data
+      break
+    case 'tablet':
+      return new randomUA({ deviceCategory: 'tablet' }).data
+      break
+    case 'desktop':
+    case 'dekstop':
+      return new randomUA({ deviceCategory: 'desktop' }).data
+      break
+    default:
+      return new randomUA().data
+  }
 }
 
 function getRandomInt (min, max) { // min and max included 
