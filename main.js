@@ -11,11 +11,12 @@ const puppeteer = require('puppeteer')
       
 
 const argv = require('optimist')
-      .usage(color('[USAGE]:', 'yellow') + 'node main --num [NUMBER OF VISITS] --min [MINIMUM DELAY IN MS] --max [MAXIMUM DELAY IN MS] --t [MAX THREADS]')
+      .usage(color('[USAGE]:', 'yellow') + 'node main --num [NUMBER OF VISITS] --min [MINIMUM DELAY IN MS] --max [MAXIMUM DELAY IN MS] --t [MAX THREADS] --headless [Boolean]')
       .demand(["num"])
       .default('min', 15000)
       .default('max', 25000)
       .default('t', 1)
+      .default('headless', 'true')
       .argv
 
 async function doVisit (options) {
@@ -61,8 +62,8 @@ async function doVisit (options) {
       })
     }
     
+    /*
     await page.setRequestInterception(true)
-    /**
     page.on('request', (request) => {
       if (["stylesheet", "image", "video", "font"].includes(request.resourceType())) {
         request.abort()
@@ -116,7 +117,11 @@ async function doVisit (options) {
     `))
     
     if (chromeTmpDataDir !== null) {
-      fs.removeSync(chromeTmpDataDir);
+      try {
+        fs.removeSync(chromeTmpDataDir)
+      } catch (e) {
+        return
+      }
     }
   } catch (e) {
     console.log('error nih bro!\n')
@@ -134,10 +139,16 @@ async function start (num) {
     }
   } else {
     for (let i = 1; i <= num; i++) {
+      if (argv.headless == 'false') {
+        useHeadless = false
+      } else {
+        useHeadless = true
+      }
       var chromeArgs = {
-        headless: true,
+        headless: useHeadless,
         args: [
           '--no-sandbox',
+          '--disable-setuid-sandbox',
           '--no-first-run',
           '--no-zygote'
           ],
@@ -163,7 +174,7 @@ async function start (num) {
         }
       }
       var url = urls[Math.floor(Math.random() * urls.length)]
-      var browserData = getRandomUserAgent()
+      var browserData = await getRandomUserAgent('random')
       var options = {
         url: url,
         useProxy: proxies.length > 0 ? true : false,
