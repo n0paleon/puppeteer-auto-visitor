@@ -1,0 +1,1 @@
+chrome.extension.isAllowedIncognitoAccess((e=>{e?document.getElementById("incognito_off").style.display="none":(document.getElementById("incognito_off").addEventListener("click",(()=>{chrome.runtime.sendMessage({action:"openQuickstartWindow",context:"enable-incognito"}),window.close()})),document.getElementById("incognito_off").style.display="block")}));

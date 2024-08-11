@@ -1,0 +1,13 @@
+version: '3'
+
+name: 'turuauto-docker'
+
+services:
+  turuauto:
+    container_name: 'turuauto-docker'
+    build: .
+    command: >
+      sh -c "pm2-runtime start main.js --name 'TuruAuto Visitor' --cron '0 0 * * *' -- --num 1000000 --min 3000 --max 4000 --headless true --t 2 --styling 0 > /var/log/turuauto.log 2>&1"
+    environment:
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
