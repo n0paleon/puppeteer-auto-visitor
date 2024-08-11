@@ -132,7 +132,7 @@ async function doVisit(options) {
       ${color('User Agent', 'green')}: ${color(options.user_agent, 'yellow')}
       ${color('Visit Tersisa', 'green')}: ${color(argv.num - options.hits + ' hits', 'yellow')}
       ${color('Total Visit', 'green')}: ${color(options.total_hits + ' hits', 'yellow')}
-      ${color('Waktu', 'green')}: ${color(moment.tz('Asia/Jakarta').locale('id').format('LLLL'), 'yellow')}
+      ${color('Waktu', 'green')}: ${color(moment.tz('Asia/Jakarta').locale('id').format('YYYY-MM-DD HH:mm:ss'))}
       ${color('Waktu Proses', 'green')}: ${color(((now() - startTime) / 1000).toFixed(2) + ' detik', 'yellow')}
       [${color(go.url(), 'orange')}] ${color("status code", 'green')}: ${color(go.status(), 'yellow')}
 
