@@ -142,6 +142,7 @@ async function doVisit(options) {
   } catch (e) {
     console.log('error nih bro!\n');
     console.error(e);
+    console.log("proxy err", options.proxy)
     return false;
   } finally {
     if (chromeTmpDataDir !== null) {
