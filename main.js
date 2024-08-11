@@ -156,9 +156,10 @@ async function doVisit(options) {
 }
 
 async function start(num) {
-  var urls = fs.readFileSync('./data/urls.txt', 'utf8').toString().split('\n');
-  var proxies = fs.readFileSync('./data/proxies.txt', 'utf8').toString().split('\n');
-  var referers = fs.readFileSync('./data/referers.txt', 'utf8').toString().split('\n');
+  var urls = fs.readFileSync('./data/urls.txt', 'utf8').toString().split('\n').filter(line => line.trim() !== '');
+  var proxies = fs.readFileSync('./data/proxies.txt', 'utf8').toString().split('\n').filter(line => line.trim() !== '');
+  var referers = fs.readFileSync('./data/referers.txt', 'utf8').toString().split('\n').filter(line => line.trim() !== '');
+
   if (cluster.isMaster) {
     for (let x = 1; x <= argv.t; x++) {
       cluster.fork();
@@ -170,10 +171,7 @@ async function start(num) {
   } else {
     for (let i = 1; i <= num; i++) {
       try {
-        var useHeadless = true;
-        if (argv.headless == 'false') {
-          useHeadless = false
-        }
+        var useHeadless = argv.headless === 'false' ? false : true;
         var chromeArgs = {
           headless: useHeadless,
           args: [
@@ -189,36 +187,33 @@ async function start(num) {
           ],
           ignoreHTTPSErrors: true
         };
-        if (proxies.length > 0 && proxies[0].length > 5) {
+
+        if (proxies.length > 0) {
           var proxy = proxies[Math.floor(Math.random() * proxies.length)].split(':');
-          var prx = `--proxy-server=http://${proxy[0]}:${proxy[1]}`
+          var prx = `--proxy-server=http://${proxy[0]}:${proxy[1]}`;
           chromeArgs.args.push(prx);
         }
-        var referer = 'https://www.discordapp.com/';
-        if (referers.length > 0) {
-          referer = referers[Math.floor(Math.random() * referers.length)].replace(/\r/g, '');
-        }
-        if (proxies[0].length > 5 && proxy.length == 4) {
-          var proxyArgs = {
-            auth: true,
-            user: proxy[2],
-            pass: proxy[3]
-          };
-        } else {
-          var proxyArgs = {
-            auth: false
-          };
-        }
-        var url = await urls[Math.floor(Math.random() * urls.length)];
+
+        var referer = referers.length > 0 ? referers[Math.floor(Math.random() * referers.length)].trim() : 'https://www.discordapp.com/';
+
+        var proxyArgs = proxies.length > 0 && proxy.length === 4 ? {
+          auth: true,
+          user: proxy[2],
+          pass: proxy[3]
+        } : { auth: false };
+
+        var url = urls.length > 0 ? urls[Math.floor(Math.random() * urls.length)].trim() : '';
+
         if (url.includes('youtube')) {
           var extPath = require('path').resolve('./ext');
           //chromeArgs.args.push(`--disable-extensions-except=${extPath}`);
           //chromeArgs.args.push(`--load-extension=${extPath}`);
         }
+
         var browserData = await getRandomUserAgent('random');
         var options = {
           url: url,
-          useProxy: proxies.length > 0 && proxies[0].length > 5 ? true : false,
+          useProxy: proxies.length > 0 && proxy.length === 4,
           proxy: proxyArgs,
           hits: i,
           user_agent: browserData.userAgent,
@@ -239,11 +234,13 @@ async function start(num) {
           process.exit(0);
         }
       } catch (e) {
+        console.error(e);
         return;
       }
     }
   }
 }
+
 
 function color(text, color) {
   return !color ? chalk.green(text) : chalk.keyword(color)(text);
