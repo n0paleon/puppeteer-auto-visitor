@@ -175,7 +175,6 @@ async function start(num) {
         var chromeArgs = {
           headless: useHeadless,
           args: [
-            '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-translate',
             '--disable-extensions',
@@ -185,7 +184,8 @@ async function start(num) {
             '--num-raster-threads=1',
             '--renderer-process-limit=100'
           ],
-          ignoreHTTPSErrors: true
+          ignoreHTTPSErrors: true,
+          pipe: true,
         };
 
         if (proxies.length > 0) {
